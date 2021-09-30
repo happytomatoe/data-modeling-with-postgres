@@ -1,0 +1,67 @@
+---
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  tests:
+    name: "Python ${{ matrix.python-version }}"
+    runs-on: "ubuntu-latest"
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      USING_COVERAGE: '3.6,3.8'
+
+    strategy:
+      matrix:
+        python-version: ["3.6","3.7","3.8"]
+
+    steps:
+      - uses: "actions/checkout@v2"
+      - uses: "actions/setup-python@v2"
+        with:
+          python-version: "${{ matrix.python-version }}"
+      - name : Cache multiple paths
+        uses : actions/cache@v2
+        with :
+          path : |
+            venv
+          key : ${{ runner.os }}
+      - name: "Create .env file"
+        run: |
+          echo "POSTGRES_URL=postgresql://postgres:postgres@localhost/postgres">.env
+      - name: "Install dependencies and run etl"
+        run: |
+          make create-venv
+          make run
+
+      - name: Send email if failed
+        uses: dawidd6/action-send-mail@v2.4.0
+        if: ${{ failure() }}
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{secrets.MAIL_USERNAME}}
+          password: ${{secrets.MAIL_PASSWORD}}
+          subject: Github Actions job failed
+          to: ${{secrets.TO_EMAIL}}
+          from: ${{secrets.FROM_EMAIL}}
+          body: More details https://github.com/happytomatoe/data-modeling-with-postgres/actions

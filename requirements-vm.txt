@@ -1,0 +1,15 @@
+python-dotenv
+pip
+colorlog
+toml
+configparser
+wheel
+cryptography
+py
+keyring
+setuptools
+docutils
+future
+pandas
+psycopg2
+pylint
