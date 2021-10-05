@@ -51,6 +51,8 @@ jobs:
       - name: "Install dependencies and run etl"
         run: |
           make create-venv
+      - name: "Run tests"
+        run: |
           make test
 
       - name: Send email if failed
