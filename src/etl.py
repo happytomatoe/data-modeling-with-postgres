@@ -7,6 +7,7 @@ from uuid import uuid4
 import numpy as np
 import pandas as pd
 import psycopg2
+from numpy import float64
 
 import table_names
 from common import create_connection, DEFAULT_DB_NAME
@@ -75,8 +76,7 @@ def process_log_file(cur, filepath):
     tuples = [tuple(x) for x in log_df[common_columns].to_numpy()]
     df2 = select_song_and_artist_ids(cur, tuples)
     if not df2.empty:
-        log_df = pd.merge(log_df, df2, how='left', left_on=common_columns,
-                          right_on=common_columns)
+        log_df = log_df.merge(df2, how='left', on=common_columns)
     else:
         log_df["artist_id"] = np.nan
         log_df["song_id"] = np.nan
@@ -103,8 +103,10 @@ def select_song_and_artist_ids(cur, tuples):
     args_str = ','.join(cur.mogrify(f"({placeholder})", x).decode('utf-8') for x in tuples)
     try:
         cur.execute(SONG_SELECT.format(args_str))
-        return pd.DataFrame(cur.fetchall(), columns=['song_id', 'artist_id', 'song', 'artist',
-                                                     'length'])
+        data_frame = pd.DataFrame(cur.fetchall(),
+                                  columns=['song_id', 'artist_id', 'song', 'artist', 'length'])
+        data_frame['length'] = data_frame['length'].astype(float64)
+        return data_frame
     except psycopg2.Error as e:
         print("Exception while executing song select statement")
         print(e)

@@ -51,7 +51,7 @@ jobs:
       - name: "Install dependencies and run etl"
         run: |
           make create-venv
-          make run
+          make test
 
       - name: Send email if failed
         uses: dawidd6/action-send-mail@v2.4.0
