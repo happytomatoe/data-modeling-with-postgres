@@ -18,6 +18,7 @@ def create_connection(db_name=None):
 
     postgres_url = os.getenv('POSTGRES_URL')
 
+    # Adapter from https://stackoverflow.com/questions/15634092/connect-to-an-uri-in-postgres
     result = urlparse(postgres_url)
     username = result.username
     password = result.password

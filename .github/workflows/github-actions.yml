@@ -13,6 +13,7 @@ jobs:
     name: "Python ${{ matrix.python-version }}"
     runs-on: "ubuntu-latest"
     services:
+      #Adapted from https://docs.github.com/en/actions/using-containerized-services/creating-postgresql-service-containers
       postgres:
         image: postgres:latest
         env:
@@ -54,7 +55,7 @@ jobs:
       - name: "Run tests"
         run: |
           make test
-
+#      Adapted from https://github.com/dawidd6/action-send-mail
       - name: Send email if failed
         uses: dawidd6/action-send-mail@v2.4.0
         if: ${{ failure() }}

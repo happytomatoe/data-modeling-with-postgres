@@ -45,7 +45,6 @@ def process_log_file(cur, filepath):
     # open log file
     log_df = pd.read_json(path_or_buf=filepath, lines=True)
 
-    # filter by NextSong action
     log_df = log_df[log_df.page == "NextSong"]
 
     # remove quotes in User Agent field
@@ -54,7 +53,51 @@ def process_log_file(cur, filepath):
     # convert timestamp column to datetime
     log_df['start_time'] = pd.to_datetime(log_df["ts"], unit='ms')
 
-    # create and load time data
+    process_time_data(cur, log_df)
+
+    process_users(cur, log_df)
+
+    process_songplays(cur, log_df)
+
+
+def process_songplays(cur, log_df):
+    """
+    Create/populate songplays dataframe and load it into db
+    :param cur:  db cursor
+    :param log_df: dataframe with log data
+    """
+    common_columns = ['song', 'artist', 'length']
+    tuples = [tuple(x) for x in log_df[common_columns].to_numpy()]
+    df2 = select_song_and_artist_ids(cur, tuples)
+    if not df2.empty:
+        log_df = log_df.merge(df2, how='left', on=common_columns)
+    else:
+        log_df["artist_id"] = np.nan
+        log_df["song_id"] = np.nan
+    log_df['id'] = [str(uuid4()) for _ in range(len(log_df.index))]
+    songplay_data = log_df[
+        ['id', 'start_time', 'userId', 'level', 'song_id', 'artist_id',
+         'sessionId', 'location', 'userAgent']]
+    load_into_db(cur, songplay_data, table_names.SONGPLAYS)
+
+
+def process_users(cur, log_df):
+    """
+    Create/populate time data dataframe and load it into db
+    :param cur:  db cursor
+    :param log_df: dataframe with log data
+    """
+    user_df = log_df[["userId", "firstName", "lastName", "gender", "level"]].copy()
+    user_df = user_df.drop_duplicates(subset=['userId'])
+    load_into_db(cur, user_df, table_names.USERS)
+
+
+def process_time_data(cur, log_df):
+    """
+    Create/populate time data dataframe and load it into db
+    :param cur:  db cursor
+    :param log_df: dataframe with log data
+    """
     time_data_df = log_df[['start_time']].copy()
     datetime = time_data_df.start_time.dt
     time_data_df['hour'] = datetime.hour
@@ -65,27 +108,6 @@ def process_log_file(cur, filepath):
     time_data_df['weekday'] = datetime.weekday
     time_data_df = time_data_df.drop_duplicates(subset=['start_time'])
     load_into_db(cur, time_data_df, table_names.TIME)
-
-    # load user table
-    user_df = log_df[["userId", "firstName", "lastName", "gender", "level"]].copy()
-    user_df = user_df.drop_duplicates(subset=['userId'])
-    load_into_db(cur, user_df, table_names.USERS)
-
-    # populate and load songplays
-    common_columns = ['song', 'artist', 'length']
-    tuples = [tuple(x) for x in log_df[common_columns].to_numpy()]
-    df2 = select_song_and_artist_ids(cur, tuples)
-    if not df2.empty:
-        log_df = log_df.merge(df2, how='left', on=common_columns)
-    else:
-        log_df["artist_id"] = np.nan
-        log_df["song_id"] = np.nan
-
-    log_df['id'] = [str(uuid4()) for _ in range(len(log_df.index))]
-    songplay_data = log_df[
-        ['id', 'start_time', 'userId', 'level', 'song_id', 'artist_id',
-         'sessionId', 'location', 'userAgent']]
-    load_into_db(cur, songplay_data, table_names.SONGPLAYS)
 
 
 def select_song_and_artist_ids(cur, tuples):
@@ -105,6 +127,7 @@ def select_song_and_artist_ids(cur, tuples):
         cur.execute(SONG_SELECT.format(args_str))
         data_frame = pd.DataFrame(cur.fetchall(),
                                   columns=['song_id', 'artist_id', 'song', 'artist', 'length'])
+        # convert column length to same type as in log df
         data_frame['length'] = data_frame['length'].astype(float64)
         return data_frame
     except psycopg2.Error as e:
@@ -120,13 +143,17 @@ def load_into_db(cursor, dataframe, table_name):
     :param dataframe: pandas dataframe
     :param table_name: table where the data will be exported to
     """
+    # Adapter from https://medium.com/analytics-vidhya/part-4-pandas-dataframe-to-postgresql-using-python-8ffdb0323c09
     buffer = StringIO()
     dataframe.to_csv(buffer, header=False, index=False, sep="\t", na_rep='None')
     buffer.seek(0)
 
     try:
+        #Adapted from https://stackoverflow.com/questions/48019381/how-postgresql-copy-to-stdin
+        # -with-csv-do -on-conflic-do-update
         cursor.execute(
-            f'CREATE TEMP TABLE {TEMP_TABLE_NAME}(LIKE {table_name} INCLUDING ALL) ON COMMIT DROP; ')
+            f'''CREATE TEMP TABLE {TEMP_TABLE_NAME}(LIKE {table_name} INCLUDING ALL) 
+                ON COMMIT DROP;''')
         cursor.copy_from(buffer, TEMP_TABLE_NAME, sep="\t", null='None')
         cursor.execute(f"""
                 INSERT INTO {table_name}

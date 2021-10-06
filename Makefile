@@ -1,3 +1,5 @@
+# Adapted from https://github.com/9gl/python/blob/2d8f03367f7b430738f25b3d1aa891c3df1cf069/py_automation/Makefile
+
 .PHONY: help prepare-dev test lint run doc default
 
 VENV_NAME?=venv

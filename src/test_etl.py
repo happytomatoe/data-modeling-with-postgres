@@ -5,7 +5,7 @@ from common import create_connection, DEFAULT_DB_NAME
 
 
 class TestETL:
-
+    # Adapted form https://docs.pytest.org/en/6.2.x/assert.html
     def test_etl(self):
         create_tables.main()
         etl.main()

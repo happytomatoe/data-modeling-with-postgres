@@ -56,8 +56,6 @@ def main():
     
     - Drops all the tables.  
 
-    - Creates all tables sequences.
-
     - Creates all tables needed. 
     
     - Finally, closes the connection. 
