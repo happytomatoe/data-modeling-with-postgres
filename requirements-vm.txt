@@ -13,3 +13,4 @@ future
 pandas
 psycopg2
 pylint
+pytest
