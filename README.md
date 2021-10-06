@@ -39,8 +39,11 @@ As this project uses a small dataset ETL pipeline uses pandas framework. If the 
 ```
 
 ## How to run a project
+###Prerequisites
+This project is tested with python 3.6-3.8
+To run it you should also have pip installed
 
-### On a local env:
+### Run project on a local env:
 
 Create .env file and set POSTGRES_URL to point to postgres instance. For example
 
@@ -53,7 +56,7 @@ make run
 ```
 
 
-### In udacity VM:
+### Run project in udacity VM:
 
 As the psycopg doesn't install inside virtualenv next approach won't use it
 
@@ -67,4 +70,3 @@ and run
 ```shell
 make run-inside-vm
 ```
-TODO: add attribution
