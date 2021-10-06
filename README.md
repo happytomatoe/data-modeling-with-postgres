@@ -39,7 +39,7 @@ As this project uses a small dataset ETL pipeline uses pandas framework. If the 
 ```
 
 ## How to run a project
-###Prerequisites
+### Prerequisites
 This project is tested with python 3.6-3.8
 To run it you should also have pip installed
 
