@@ -26,12 +26,12 @@ def process_song_file(cur, filepath):
     df = pd.read_json(path_or_buf=filepath, lines=True)
     df = df.replace({'year': {0: np.nan}})
 
-    # insert artist record
+    # insert artist records
     artist_df = df[["artist_id", "artist_name", "artist_location", "artist_latitude",
                     "artist_longitude"]]
     load_into_db(cur, artist_df, table_names.ARTISTS)
 
-    # insert song record
+    # insert song records
     song_df = df[['song_id', "title", "artist_id", "year", "duration"]]
     load_into_db(cur, song_df, table_names.SONGS)
 
@@ -143,13 +143,14 @@ def load_into_db(cursor, dataframe, table_name):
     :param dataframe: pandas dataframe
     :param table_name: table where the data will be exported to
     """
-    # Adapter from https://medium.com/analytics-vidhya/part-4-pandas-dataframe-to-postgresql-using-python-8ffdb0323c09
+    # Adapted from https://medium.com/analytics-vidhya/part-4-pandas-dataframe-to-postgresql
+    # -using-python-8ffdb0323c09
     buffer = StringIO()
     dataframe.to_csv(buffer, header=False, index=False, sep="\t", na_rep='None')
     buffer.seek(0)
 
     try:
-        #Adapted from https://stackoverflow.com/questions/48019381/how-postgresql-copy-to-stdin
+        # Adapted from https://stackoverflow.com/questions/48019381/how-postgresql-copy-to-stdin
         # -with-csv-do -on-conflic-do-update
         cursor.execute(
             f'''CREATE TEMP TABLE {TEMP_TABLE_NAME}(LIKE {table_name} INCLUDING ALL) 
