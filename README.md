@@ -71,6 +71,6 @@ and run
 make run-inside-vm
 ```
 
-##Miscalenous
+## Miscalenous
 If you are viewing this project on github there is a github ci badge.
 There is also configured cicd pipeline using github actions which sends an email if the pipeline failed
