@@ -1,6 +1,5 @@
 version: "3.3"
 services:
-  #  Adapted from https://hub.docker.com/_/postgres
   db:
     image: postgres
     container_name: pg_container

@@ -1,8 +1,4 @@
-import os
-from urllib.parse import urlparse
-
 import psycopg2
-from dotenv import load_dotenv
 
 import create_tables
 import etl
