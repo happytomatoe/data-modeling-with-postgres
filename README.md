@@ -27,3 +27,8 @@ As this project uses a small dataset ETL pipeline uses pandas framework. If the 
 ├── README.md
 └── sql_queries.py - script with SQL queries
 ```
+
+TODO: 
+- Add a screenshot or an image (ER Diagram) showing how the fact and dimension tables are connected using lucidcharts
+- Update the level column for users table for the existing records. Users might change from 'free' to 'paid' and vice versa.
+- fix test
