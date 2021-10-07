@@ -47,16 +47,12 @@ jobs:
           path : |
             venv
           key : ${{ runner.os }}
-      - name: "Create .env file"
-        run: |
-          echo "POSTGRES_URL=postgresql://postgres:postgres@localhost/postgres">.env
-      - name: "Install dependencies and run etl"
+      - name: "Install dependencies"
         run: |
           make create-venv
       - name: "Run tests"
         run: |
           make test
-#      Adapted from https://github.com/dawidd6/action-send-mail
       - name: Send email if failed
         uses: dawidd6/action-send-mail@v2.4.0
         if: ${{ failure() }}

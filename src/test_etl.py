@@ -1,18 +1,12 @@
-import psycopg2
-
 import create_tables
 import etl
 from src.sql_queries import TableNames
 
 
 class TestETL:
-    # Adapted form https://docs.pytest.org/en/6.2.x/assert.html
     def test_etl(self):
-        create_tables.main()
+        cur, conn = create_tables.recreate_database()
         etl.main()
-
-        conn = psycopg2.connect("host=127.0.0.1 dbname=sparkifydb user=student password=student")
-        cur = conn.cursor()
 
         cur.execute(
             f"SELECT COUNT(*) FROM {TableNames.SONGPLAYS} WHERE song_id IS NOT NULL AND "
