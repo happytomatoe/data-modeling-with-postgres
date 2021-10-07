@@ -14,7 +14,6 @@ class TestETL:
         conn = psycopg2.connect("host=127.0.0.1 dbname=sparkifydb user=student password=student")
         cur = conn.cursor()
 
-
         cur.execute(
             f"SELECT COUNT(*) FROM {TableNames.SONGPLAYS} WHERE song_id IS NOT NULL AND "
             f"artist_id IS NOT NULL ")

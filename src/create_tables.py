@@ -4,6 +4,7 @@ from sql_queries import DROP_TABLE_QUERIES, CREATE_TABLE_QUERIES
 
 DEFAULT_DB_NAME = "sparkifydb"
 
+
 def create_database():
     """
     - Creates and connects to the sparkifydb
@@ -27,6 +28,7 @@ def create_database():
     cur = conn.cursor()
 
     return cur, conn
+
 
 def drop_tables(cur, conn):
     """
