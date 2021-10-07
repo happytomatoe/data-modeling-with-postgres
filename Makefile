@@ -52,12 +52,5 @@ run: recreate-tables
 doc: venv
 	$(VENV_ACTIVATE) && cd docs; make html
 
-
-install-dependencies-inside-vm: requirements-vm.txt
-	${PYTHON_LOCAL} -m pip install -U pip
-	${PYTHON_LOCAL} -m pip  install  -r requirements-vm.txt
-
-run-inside-vm: install-dependencies-inside-vm
-	${PYTHON_LOCAL} src/create_tables.py
-	${PYTHON_LOCAL} src/etl.py
-
+package:
+	rm -f submission.zip&&cd src&&zip -j   ../submission.zip  etl.py create_tables.py sql_queries.py ../README.md
