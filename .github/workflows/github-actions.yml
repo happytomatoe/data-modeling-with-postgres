@@ -15,9 +15,9 @@ jobs:
     services:
       #Adapted from https://docs.github.com/en/actions/using-containerized-services/creating-postgresql-service-containers
       postgres:
-        image: postgres:latest
+        image: postgres:9.6
         env:
-          POSTGRES_DB: student
+          POSTGRES_DB: studentdb
           POSTGRES_PASSWORD: student
           POSTGRES_USER: postgres
         ports:
