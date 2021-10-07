@@ -87,7 +87,7 @@ def process_users(cur, log_df):
     """
     user_df = log_df[["userId", "firstName", "lastName", "gender", "level"]].copy()
     user_df = user_df.drop_duplicates(subset=['userId'])
-    load_into_db(cur, user_df, TableNames.USERS, ["level"])
+    load_into_db(cur, user_df, TableNames.USERS, "user_id", ["level"])
 
 
 def process_time_data(cur, log_df):
@@ -134,15 +134,20 @@ def select_song_and_artist_ids(cur, tuples):
         sys.exit(1)
 
 
-def load_into_db(cursor, dataframe, table_name, update_columns=[]):
+def load_into_db(cursor, dataframe, table_name, primary_key_column="", update_columns=None):
     """
     Load pandas dataframe into table
     :param cursor: database cursor
     :param dataframe: pandas dataframe
     :param table_name: table where the data will be exported to
+    :param primary_key_column: which is used as contraint in ON CONFLICT ... UPDATE statement
+    :param update_columns: columns set in CONFLICT ... UPDATE statement when inserting data
+
     """
     # Adapted from https://medium.com/analytics-vidhya/part-4-pandas-dataframe-to-postgresql
     # -using-python-8ffdb0323c09
+    if update_columns is None:
+        update_columns = []
     buffer = StringIO()
     dataframe.to_csv(buffer, header=False, index=False, sep="\t", na_rep='None')
     buffer.seek(0)
@@ -154,15 +159,19 @@ def load_into_db(cursor, dataframe, table_name, update_columns=[]):
             f'''CREATE TEMP TABLE {TEMP_TABLE_NAME}(LIKE {table_name} INCLUDING ALL) 
                 ON COMMIT DROP;''')
         cursor.copy_from(buffer, TEMP_TABLE_NAME, sep="\t", null='None')
+
+        if update_columns is not None and len(primary_key_column) > 0:
+            on_conflict_action = f"UPDATE SET {update_columns[0]}=excluded" \
+                               f".{update_columns[0]}"
+            primary_key_column = f"({primary_key_column})"
+        else:
+            on_conflict_action = "NOTHING"
         insert_query = f"""
                 INSERT INTO {table_name}
                 SELECT * FROM {TEMP_TABLE_NAME}
-                ON CONFLICT DO;
+                ON CONFLICT {primary_key_column} DO {on_conflict_action}
                 """
-        if len(update_columns) == 0:
-            insert_query += "NOTHING"
-        else:
-            insert_query += f"UPDATE SET {update_columns[0]} {TEMP_TABLE_NAME}.{update_columns[0]}"
+        print(insert_query)
         cursor.execute(insert_query)
         cursor.execute(f'DROP TABLE {TEMP_TABLE_NAME}')
     except psycopg2.Error as e:
