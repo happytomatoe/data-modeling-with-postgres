@@ -65,7 +65,7 @@ def process_songplays(cur, log_df):
     :param log_df: dataframe with log data
     """
     common_columns = ['song', 'artist', 'length']
-    tuples = [tuple(x) for x in log_df[common_columns].to_numpy()]
+    tuples = [tuple(x) for x in log_df[common_columns].values]
     df2 = select_song_and_artist_ids(cur, tuples)
     if not df2.empty:
         log_df = log_df.merge(df2, how='left', on=common_columns)
@@ -100,7 +100,7 @@ def process_time_data(cur, log_df):
     datetime = time_data_df.start_time.dt
     time_data_df['hour'] = datetime.hour
     time_data_df['day'] = datetime.day
-    time_data_df['week_of_year'] = datetime.isocalendar().week
+    time_data_df['week_of_year'] = datetime.week
     time_data_df['month'] = datetime.month
     time_data_df['year'] = datetime.year
     time_data_df['weekday'] = datetime.weekday
