@@ -1,6 +1,12 @@
-from common import create_connection, DEFAULT_DB_NAME
+import os
+from urllib.parse import urlparse
+
+import psycopg2
+from dotenv import load_dotenv
+
 from sql_queries import DROP_TABLE_QUERIES, CREATE_TABLE_QUERIES
 
+DEFAULT_DB_NAME = "sparkifydb"
 
 def create_database():
     """
@@ -9,25 +15,22 @@ def create_database():
     """
 
     # connect to default database
-    conn = create_connection()
+    conn = psycopg2.connect("host=127.0.0.1 dbname=studentdb user=student password=student")
     conn.set_session(autocommit=True)
     cur = conn.cursor()
 
     # create sparkify database with UTF8 encoding
-    db_name = DEFAULT_DB_NAME
-    print("Database name", db_name)
-    cur.execute(f"DROP DATABASE IF EXISTS {db_name}")
-    cur.execute(f"CREATE DATABASE {db_name} WITH ENCODING 'utf8' TEMPLATE template0")
+    cur.execute("DROP DATABASE IF EXISTS sparkifydb")
+    cur.execute("CREATE DATABASE sparkifydb WITH ENCODING 'utf8' TEMPLATE template0")
 
     # close connection to default database
     conn.close()
 
     # connect to sparkify database
-    conn = create_connection(db_name)
+    conn = psycopg2.connect("host=127.0.0.1 dbname=sparkifydb user=student password=student")
     cur = conn.cursor()
 
     return cur, conn
-
 
 def drop_tables(cur, conn):
     """

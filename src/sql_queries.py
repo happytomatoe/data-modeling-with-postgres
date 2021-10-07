@@ -1,21 +1,28 @@
-import table_names
+class TableNames:
+    TIME = "time"
+    ARTISTS = "artists"
+    SONGS = "songs"
+    USERS = "users"
+    SONGPLAYS = "songplays"
+    ALL_TABLES = [TIME, ARTISTS, SONGPLAYS, SONGS, USERS]
+
 
 DROP_TABLE_QUERY_TEMPLATE = "DROP TABLE IF EXISTS {};"
 
 # DROP TABLES
 
-SONGPLAY_TABLE_DROP = DROP_TABLE_QUERY_TEMPLATE.format(table_names.SONGPLAYS)
-USERS_TABLE_DROP = DROP_TABLE_QUERY_TEMPLATE.format(table_names.USERS)
-DROP_SONGS_TABLE = DROP_TABLE_QUERY_TEMPLATE.format(table_names.SONGS)
-ARTIST_TABLE_DROP = DROP_TABLE_QUERY_TEMPLATE.format(table_names.ARTISTS)
-TIME_TABLE_DROP = DROP_TABLE_QUERY_TEMPLATE.format(table_names.TIME)
+SONGPLAY_TABLE_DROP = DROP_TABLE_QUERY_TEMPLATE.format(TableNames.SONGPLAYS)
+USERS_TABLE_DROP = DROP_TABLE_QUERY_TEMPLATE.format(TableNames.USERS)
+DROP_SONGS_TABLE = DROP_TABLE_QUERY_TEMPLATE.format(TableNames.SONGS)
+ARTIST_TABLE_DROP = DROP_TABLE_QUERY_TEMPLATE.format(TableNames.ARTISTS)
+TIME_TABLE_DROP = DROP_TABLE_QUERY_TEMPLATE.format(TableNames.TIME)
 
 # CREATE TABLES
 
 # alter table time owner to postgres;
 
 SONGPLAY_TABLE_CREATE = (f"""
-CREATE TABLE {table_names.SONGPLAYS}(
+CREATE TABLE {TableNames.SONGPLAYS}(
     id uuid not null constraint songplays_pk primary key,
     start_time timestamp not null constraint songplays__time_fk references time,
     user_id bigint constraint songplays__user_fk references users,
@@ -29,7 +36,7 @@ CREATE TABLE {table_names.SONGPLAYS}(
 """)
 
 USER_TABLE_CREATE = (f"""
-CREATE TABLE {table_names.USERS} (
+CREATE TABLE {TableNames.USERS} (
     user_id bigint not null constraint users_pk primary key,
     first_name varchar,
     last_name varchar,
@@ -39,7 +46,7 @@ CREATE TABLE {table_names.USERS} (
 """)
 
 SONG_TABLE_CREATE = (f"""
-CREATE TABLE {table_names.SONGS} (
+CREATE TABLE {TableNames.SONGS} (
     song_id varchar not null constraint songs_pk primary key,
     title varchar not null unique,
     artist_id varchar constraint songs__artist_fk references artists,
@@ -49,7 +56,7 @@ CREATE TABLE {table_names.SONGS} (
 """)
 
 ARTIST_TABLE_CREATE = (f"""
-CREATE TABLE {table_names.ARTISTS}(
+CREATE TABLE {TableNames.ARTISTS}(
     artist_id varchar not null constraint artists_pk primary key,
     name varchar not null unique,
     location varchar,
@@ -59,7 +66,7 @@ CREATE TABLE {table_names.ARTISTS}(
 """)
 
 TIME_TABLE_CREATE = (f"""
-CREATE TABLE {table_names.TIME}(
+CREATE TABLE {TableNames.TIME}(
     start_time timestamp not null constraint time_pk primary key,
     hour integer not null,
     day integer not null,
@@ -72,8 +79,8 @@ CREATE TABLE {table_names.TIME}(
 
 # FIND SONGS
 SONG_SELECT = (f"""
-    SELECT s.song_id, s.artist_id,s.title,a.name,s.duration FROM {table_names.SONGS} s
-    JOIN {table_names.ARTISTS} a ON s.artist_id=a.artist_id
+    SELECT s.song_id, s.artist_id,s.title,a.name,s.duration FROM {TableNames.SONGS} s
+    JOIN {TableNames.ARTISTS} a ON s.artist_id=a.artist_id
     WHERE (s.title,a.name,s.duration) in ({{}}) 
     """)
 

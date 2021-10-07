@@ -9,9 +9,7 @@ import pandas as pd
 import psycopg2
 from numpy import float64
 
-import table_names
-from common import create_connection, DEFAULT_DB_NAME
-from sql_queries import SONG_SELECT
+from sql_queries import SONG_SELECT, TableNames
 
 TEMP_TABLE_NAME = 'source'
 
@@ -29,11 +27,11 @@ def process_song_file(cur, filepath):
     # insert artist records
     artist_df = df[["artist_id", "artist_name", "artist_location", "artist_latitude",
                     "artist_longitude"]]
-    load_into_db(cur, artist_df, table_names.ARTISTS)
+    load_into_db(cur, artist_df, TableNames.ARTISTS)
 
     # insert song records
     song_df = df[['song_id', "title", "artist_id", "year", "duration"]]
-    load_into_db(cur, song_df, table_names.SONGS)
+    load_into_db(cur, song_df, TableNames.SONGS)
 
 
 def process_log_file(cur, filepath):
@@ -78,7 +76,7 @@ def process_songplays(cur, log_df):
     songplay_data = log_df[
         ['id', 'start_time', 'userId', 'level', 'song_id', 'artist_id',
          'sessionId', 'location', 'userAgent']]
-    load_into_db(cur, songplay_data, table_names.SONGPLAYS)
+    load_into_db(cur, songplay_data, TableNames.SONGPLAYS)
 
 
 def process_users(cur, log_df):
@@ -89,7 +87,7 @@ def process_users(cur, log_df):
     """
     user_df = log_df[["userId", "firstName", "lastName", "gender", "level"]].copy()
     user_df = user_df.drop_duplicates(subset=['userId'])
-    load_into_db(cur, user_df, table_names.USERS)
+    load_into_db(cur, user_df, TableNames.USERS)
 
 
 def process_time_data(cur, log_df):
@@ -107,7 +105,7 @@ def process_time_data(cur, log_df):
     time_data_df['year'] = datetime.year
     time_data_df['weekday'] = datetime.weekday
     time_data_df = time_data_df.drop_duplicates(subset=['start_time'])
-    load_into_db(cur, time_data_df, table_names.TIME)
+    load_into_db(cur, time_data_df, TableNames.TIME)
 
 
 def select_song_and_artist_ids(cur, tuples):
@@ -188,7 +186,7 @@ def process_data(cur, conn, filepath, func):
 
 
 def main():
-    conn = create_connection(DEFAULT_DB_NAME)
+    conn = psycopg2.connect("host=127.0.0.1 dbname=sparkifydb user=student password=student")
     cur = conn.cursor()
 
     process_data(cur, conn, filepath='data/song_data', func=process_song_file)
