@@ -47,11 +47,6 @@ def create_tables(cur, conn):
 
 
 def main():
-    conn = recreate_database()
-    conn.close()
-
-
-def recreate_database():
     """
     - Drops (if exists) and Creates the sparkify database.
 
@@ -65,9 +60,11 @@ def recreate_database():
     - Finally, closes the connection.
     """
     cur, conn = create_database()
+
     drop_tables(cur, conn)
     create_tables(cur, conn)
-    return conn
+
+    conn.close()
 
 
 if __name__ == "__main__":
