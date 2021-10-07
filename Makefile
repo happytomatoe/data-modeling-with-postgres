@@ -47,6 +47,7 @@ recreate-tables:
 	${PYTHON_VENV} src/create_tables.py
 
 run: recreate-tables
+	export POSTGRES_URL=postgresql://postgres:postgres@localhost/postgres
 	${PYTHON_VENV} src/etl.py
 
 doc: venv
