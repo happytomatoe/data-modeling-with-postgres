@@ -13,7 +13,6 @@ jobs:
     name: "Python ${{ matrix.python-version }}"
     runs-on: "ubuntu-latest"
     services:
-      #Adapted from https://docs.github.com/en/actions/using-containerized-services/creating-postgresql-service-containers
       postgres:
         image: postgres:9.6
         env:
