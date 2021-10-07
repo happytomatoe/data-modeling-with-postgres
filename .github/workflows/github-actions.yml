@@ -46,10 +46,7 @@ jobs:
           path : |
             venv
           key : ${{ runner.os }}
-      - name: "Install dependencies"
-        run: |
-          make create-venv
-      - name: "Run tests"
+      - name: "Install dependencies and run tests"
         run: |
           make test
       - name: Send email if failed
