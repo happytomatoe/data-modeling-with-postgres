@@ -87,7 +87,7 @@ def process_users(cur, log_df):
     """
     user_df = log_df[["userId", "firstName", "lastName", "gender", "level"]].copy()
     user_df = user_df.drop_duplicates(subset=['userId'])
-    load_into_db(cur, user_df, TableNames.USERS)
+    load_into_db(cur, user_df, TableNames.USERS, ["level"])
 
 
 def process_time_data(cur, log_df):
@@ -134,7 +134,7 @@ def select_song_and_artist_ids(cur, tuples):
         sys.exit(1)
 
 
-def load_into_db(cursor, dataframe, table_name):
+def load_into_db(cursor, dataframe, table_name, update_columns=[]):
     """
     Load pandas dataframe into table
     :param cursor: database cursor
@@ -154,11 +154,16 @@ def load_into_db(cursor, dataframe, table_name):
             f'''CREATE TEMP TABLE {TEMP_TABLE_NAME}(LIKE {table_name} INCLUDING ALL) 
                 ON COMMIT DROP;''')
         cursor.copy_from(buffer, TEMP_TABLE_NAME, sep="\t", null='None')
-        cursor.execute(f"""
+        insert_query = f"""
                 INSERT INTO {table_name}
                 SELECT * FROM {TEMP_TABLE_NAME}
-                ON CONFLICT DO NOTHING;
-                """)
+                ON CONFLICT DO;
+                """
+        if len(update_columns) == 0:
+            insert_query += "NOTHING"
+        else:
+            insert_query += f"UPDATE SET {update_columns[0]} {TEMP_TABLE_NAME}.{update_columns[0]}"
+        cursor.execute(insert_query)
         cursor.execute(f'DROP TABLE {TEMP_TABLE_NAME}')
     except psycopg2.Error as e:
         print("Exception while loading data into db")
