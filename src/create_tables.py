@@ -2,8 +2,6 @@ import psycopg2
 
 from sql_queries import DROP_TABLE_QUERIES, CREATE_TABLE_QUERIES
 
-DEFAULT_DB_NAME = "sparkifydb"
-
 
 def create_database():
     """
