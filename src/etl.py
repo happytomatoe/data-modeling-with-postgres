@@ -140,7 +140,7 @@ def load_into_db(cursor, dataframe, table_name, primary_key_column="", update_co
     :param cursor: database cursor
     :param dataframe: pandas dataframe
     :param table_name: table where the data will be exported to
-    :param primary_key_column: which is used as contraint in ON CONFLICT ... UPDATE statement
+    :param primary_key_column: which is used as constraint in ON CONFLICT ... UPDATE statement
     :param update_columns: columns set in CONFLICT ... UPDATE statement when inserting data
 
     """
