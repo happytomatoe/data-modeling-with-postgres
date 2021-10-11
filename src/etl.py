@@ -171,7 +171,6 @@ def load_into_db(cursor, dataframe, table_name, primary_key_column="", update_co
                 SELECT * FROM {TEMP_TABLE_NAME}
                 ON CONFLICT {primary_key_column} DO {on_conflict_action}
                 """
-        print(insert_query)
         cursor.execute(insert_query)
         cursor.execute(f'DROP TABLE {TEMP_TABLE_NAME}')
     except psycopg2.Error as e:
