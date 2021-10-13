@@ -51,11 +51,34 @@ def process_log_file(cur, filepath):
     # convert timestamp column to datetime
     log_df['start_time'] = pd.to_datetime(log_df["ts"], unit='ms')
 
-    process_time_data(cur, log_df)
+    time_data_df = log_df[['start_time']].copy()
+    datetime = time_data_df.start_time.dt
+    time_data_df['hour'] = datetime.hour
+    time_data_df['day'] = datetime.day
+    time_data_df['week_of_year'] = datetime.week
+    time_data_df['month'] = datetime.month
+    time_data_df['year'] = datetime.year
+    time_data_df['weekday'] = datetime.weekday
+    time_data_df = time_data_df.drop_duplicates(subset=['start_time'])
+    load_into_db(cur, time_data_df, TableNames.TIME)
 
-    process_users(cur, log_df)
+    user_df = log_df[["userId", "firstName", "lastName", "gender", "level"]].copy()
+    user_df = user_df.drop_duplicates(subset=['userId'])
+    load_into_db(cur, user_df, TableNames.USERS, "user_id", ["level"])
 
-    process_songplays(cur, log_df)
+    common_columns = ['song', 'artist', 'length']
+    tuples = [tuple(x) for x in log_df[common_columns].values]
+    df2 = select_song_and_artist_ids(cur, tuples)
+    if not df2.empty:
+        log_df = log_df.merge(df2, how='left', on=common_columns)
+    else:
+        log_df["artist_id"] = np.nan
+        log_df["song_id"] = np.nan
+    log_df['id'] = [str(uuid4()) for _ in range(len(log_df.index))]
+    songplay_data = log_df[
+        ['id', 'start_time', 'userId', 'level', 'song_id', 'artist_id',
+         'sessionId', 'location', 'userAgent']]
+    load_into_db(cur, songplay_data, TableNames.SONGPLAYS)
 
 
 def process_songplays(cur, log_df):
@@ -88,24 +111,6 @@ def process_users(cur, log_df):
     user_df = log_df[["userId", "firstName", "lastName", "gender", "level"]].copy()
     user_df = user_df.drop_duplicates(subset=['userId'])
     load_into_db(cur, user_df, TableNames.USERS, "user_id", ["level"])
-
-
-def process_time_data(cur, log_df):
-    """
-    Create/populate time data dataframe and load it into db
-    :param cur:  db cursor
-    :param log_df: dataframe with log data
-    """
-    time_data_df = log_df[['start_time']].copy()
-    datetime = time_data_df.start_time.dt
-    time_data_df['hour'] = datetime.hour
-    time_data_df['day'] = datetime.day
-    time_data_df['week_of_year'] = datetime.week
-    time_data_df['month'] = datetime.month
-    time_data_df['year'] = datetime.year
-    time_data_df['weekday'] = datetime.weekday
-    time_data_df = time_data_df.drop_duplicates(subset=['start_time'])
-    load_into_db(cur, time_data_df, TableNames.TIME)
 
 
 def select_song_and_artist_ids(cur, tuples):
